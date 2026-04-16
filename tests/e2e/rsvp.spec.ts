@@ -14,10 +14,10 @@ test.describe("RSVP flow", () => {
       category: "Music",
       maxAttendees: "10",
     });
-    const eventUrl = page.url();
+    const eventUrl = page.url().split("?")[0];
 
-    // Sign out, log in as user 1
-    await page.goto("/api/auth/signout");
+    // Switch to user 1 — clear cookies (NextAuth v5 session is cookie-based)
+    await page.context().clearCookies();
     await login(page, TEST_USER.email, TEST_USER.password);
     await page.goto(eventUrl);
 
@@ -40,10 +40,7 @@ test.describe("RSVP flow", () => {
   });
 
   test("user can cancel their RSVP", async ({ page }) => {
-    await login(page, TEST_USER.email, TEST_USER.password);
-
     // Create a fresh event as user 2, RSVP as user 1, then cancel
-    await page.goto("/api/auth/signout");
     await login(page, TEST_USER_2.email, TEST_USER_2.password);
     await createEventViaUI(page, {
       title: `Cancel RSVP Event ${ts}`,
@@ -51,9 +48,9 @@ test.describe("RSVP flow", () => {
       location: "Cancel City",
       category: "Sports",
     });
-    const eventUrl = page.url();
+    const eventUrl = page.url().split("?")[0];
 
-    await page.goto("/api/auth/signout");
+    await page.context().clearCookies();
     await login(page, TEST_USER.email, TEST_USER.password);
     await page.goto(eventUrl);
 
@@ -78,10 +75,10 @@ test.describe("RSVP flow", () => {
       location: "Unauth City",
       category: "Other",
     });
-    const eventUrl = page.url();
+    const eventUrl = page.url().split("?")[0];
 
-    // Sign out and visit event page
-    await page.goto("/api/auth/signout");
+    // Sign out and visit event page (unauthenticated)
+    await page.context().clearCookies();
     await page.goto(eventUrl);
 
     await page.getByRole("button", { name: /sign in to rsvp/i }).click();
@@ -98,10 +95,10 @@ test.describe("RSVP flow", () => {
       category: "Tech",
       maxAttendees: "1",
     });
-    const eventUrl = page.url();
+    const eventUrl = page.url().split("?")[0];
 
     // User 1 RSVPs — fills the slot
-    await page.goto("/api/auth/signout");
+    await page.context().clearCookies();
     await login(page, TEST_USER.email, TEST_USER.password);
     await page.goto(eventUrl);
 

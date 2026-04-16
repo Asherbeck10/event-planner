@@ -33,22 +33,28 @@ test.describe("Event CRUD", () => {
     });
 
     // Redirected to event detail page
-    await expect(page.getByText(EVENT_TITLE)).toBeVisible();
+    await expect(page.getByRole("heading", { name: EVENT_TITLE })).toBeVisible();
     await expect(page.getByText("Test City, TC")).toBeVisible();
   });
 
   test("event detail page shows RSVP button", async ({ page }) => {
-    await login(page, TEST_USER.email, TEST_USER.password);
-
-    // Create an event first to get its URL
+    // Create as user 2 — user 1 (non-organizer) must see the RSVP button.
+    // The organizer never sees the RSVP button on their own event.
+    await login(page, TEST_USER_2.email, TEST_USER_2.password);
     await createEventViaUI(page, {
       title: `RSVP Visible ${ts}`,
       date: FUTURE_DATE,
       location: "Somewhere",
       category: "Music",
     });
+    const eventUrl = page.url().split("?")[0];
 
-    await expect(page.getByRole("button", { name: /cancel rsvp|rsvp to event/i })).toBeVisible();
+    // Switch to user 1
+    await page.context().clearCookies();
+    await login(page, TEST_USER.email, TEST_USER.password);
+    await page.goto(eventUrl);
+
+    await expect(page.getByRole("button", { name: /rsvp to event/i })).toBeVisible();
   });
 
   test("owner can edit their event", async ({ page }) => {
@@ -63,14 +69,15 @@ test.describe("Event CRUD", () => {
 
     // Click edit link (only visible to owner)
     await page.getByRole("link", { name: /edit/i }).click();
-    await expect(page).toHaveURL(/\/edit$/);
+    await expect(page).toHaveURL(/\/edit/);
 
     await page.fill('input[name="title"]', `Edited Event ${ts}`);
     await page.fill('input[name="location"]', "Edited City");
     await page.click('button[type="submit"]');
 
-    await expect(page).toHaveURL(/\/events\/[^/]+$/);
-    await expect(page.getByText(`Edited Event ${ts}`)).toBeVisible();
+    await page.waitForURL(/\/events\/[a-z0-9-]+/, { timeout: 15_000 });
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByRole("heading", { name: `Edited Event ${ts}` })).toBeVisible();
     await expect(page.getByText("Edited City")).toBeVisible();
   });
 
@@ -101,11 +108,10 @@ test.describe("Event CRUD", () => {
       location: "Lock City",
       category: "Networking",
     });
-    const eventUrl = page.url();
+    const eventUrl = page.url().split("?")[0];
 
-    // Log out and log in as user 2
-    await page.goto("/api/auth/signout");
-    await page.goto(eventUrl);
+    // Log out and log in as user 2 — cookie clearing is reliable with NextAuth v5
+    await page.context().clearCookies();
     await login(page, TEST_USER_2.email, TEST_USER_2.password);
     await page.goto(eventUrl);
 
@@ -135,11 +141,17 @@ test.describe("Event form validation", () => {
   test("shows error when creating event with empty title", async ({ page }) => {
     await login(page, TEST_USER.email, TEST_USER.password);
     await page.goto("/events/new");
-    // Leave title empty and submit
+    // Fill required fields but leave title empty, then bypass the browser's
+    // `required` attribute so the form submits and Zod validation runs server-side.
     await page.fill('input[name="date"]', FUTURE_DATE);
     await page.fill('input[name="location"]', "Somewhere");
+    await page.selectOption('select[name="category"]', "Tech");
+    await page.evaluate(() => {
+      const el = document.querySelector<HTMLInputElement>('input[name="title"]');
+      if (el) el.removeAttribute("required");
+    });
     await page.click('button[type="submit"]');
-    await expect(page.getByText(/required/i)).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText(/required/i)).toBeVisible({ timeout: 10_000 });
   });
 });
 

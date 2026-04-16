@@ -52,8 +52,10 @@ export async function createEventViaUI(
     await page.fill('input[name="maxAttendees"]', fields.maxAttendees);
   }
   await page.click('button[type="submit"]');
-  // Wait for redirect to the new event's detail page
-  await page.waitForURL(/\/events\/[^/]+$/, { timeout: 10_000 });
+  // Wait for redirect to the new event's detail page.
+  // Avoid $ anchor — Next.js may transiently append ?_rsc=… during RSC navigation.
+  await page.waitForURL(/\/events\/[a-z0-9-]+/, { timeout: 15_000 });
+  await page.waitForLoadState("networkidle");
 }
 
 // ── custom fixture: authenticated page ───────────────────────────
