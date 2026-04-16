@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Event Planner
+
+A full-stack event planning application built with Next.js 16, Supabase, and Auth.js. Create events, manage RSVPs, and discover what's happening near you.
+
+## Features
+
+- **Authentication** — Sign up and sign in with email/password
+- **Event Management** — Create, edit, and delete events
+- **RSVP System** — RSVP to events with capacity limits
+- **Dashboard** — Manage your events and RSVPs in one place
+- **Search & Filter** — Find events by keyword, category, and location
+- **Responsive Design** — Mobile-friendly dark UI
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 |
+| Database | Supabase (PostgreSQL) |
+| Auth | Auth.js v5 (NextAuth) |
+| Validation | Zod v4 |
+| Deployment | Vercel |
 
 ## Getting Started
 
-First, run the development server:
+### 1. Install dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Set up Supabase
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Create a free project at [supabase.com](https://supabase.com)
+2. Go to the **SQL Editor** and run the contents of `supabase/schema.sql`
+3. Go to **Project Settings → API** to get your keys
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Configure environment variables
 
-## Learn More
+Create a `.env.local` file in the project root:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+AUTH_SECRET=your_random_secret  # generate with: openssl rand -base64 32
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 4. Run the development server
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+pnpm dev
+```
 
-## Deploy on Vercel
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+app/
+  page.tsx                  # Home — hero + upcoming events
+  dashboard/page.tsx        # My Events + My RSVPs tabs
+  events/
+    page.tsx                # Browse events with search/filter
+    new/page.tsx            # Create event (protected)
+    [id]/page.tsx           # Event detail + RSVP
+    [id]/edit/page.tsx      # Edit event (organizer only)
+  auth/
+    login/page.tsx
+    register/page.tsx
+  api/auth/[...nextauth]/   # Auth.js API route
+
+actions/
+  auth.ts                   # register / login server actions
+  events.ts                 # event CRUD server actions
+  rsvps.ts                  # RSVP toggle server action
+
+components/
+  Navbar.tsx                # Auth-aware responsive navbar
+  EventCard.tsx             # Event listing card
+  EventForm.tsx             # Shared create/edit form
+  AuthForm.tsx              # Shared login/register form
+  RSVPButton.tsx            # RSVP toggle with optimistic UI
+  SearchFilter.tsx          # Search + category + location filters
+
+lib/
+  auth.ts                   # NextAuth config
+  db.ts                     # Supabase client + shared types
+  validations.ts            # Zod schemas + EVENT_CATEGORIES
+
+supabase/
+  schema.sql                # Database schema
+```
+
+## Deployment
+
+### Deploy to Vercel
+
+1. Push your repo to GitHub
+2. Import the project at [vercel.com/new](https://vercel.com/new)
+3. Add all four environment variables from `.env.local` in the Vercel dashboard
+4. Deploy
+
+> Make sure `SUPABASE_SERVICE_ROLE_KEY` is added as a **server-only** environment variable (not prefixed with `NEXT_PUBLIC_`).
+
