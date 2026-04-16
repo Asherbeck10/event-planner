@@ -131,6 +131,8 @@ pnpm test:watch    # watch mode
 
 E2E tests require a running app and a Supabase database. The global setup seeds two test users and cleans them up after the run.
 
+Playwright loads your `.env.local` automatically, so no extra setup is needed locally.
+
 ```bash
 # Run against the local dev server (starts automatically)
 pnpm test:e2e

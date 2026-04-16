@@ -1,13 +1,18 @@
 import { defineConfig, devices } from "@playwright/test";
 import path from "path";
+import { config } from "dotenv";
+
+// Load .env.local so global-setup/teardown and the webServer can read
+// NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, etc.
+// (Playwright runs outside Next.js and does not load .env.local automatically.)
+config({ path: path.resolve(__dirname, ".env.local") });
+const baseURL = process.env.TEST_BASE_URL ?? "http://localhost:3000";
 
 /**
- * E2E tests require a running Next.js server and a Supabase database.
- * Set TEST_BASE_URL to override the default localhost URL.
  * For CI: set TEST_BASE_URL, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
- * SUPABASE_SERVICE_ROLE_KEY, NEXTAUTH_SECRET, and NEXTAUTH_URL.
+ * SUPABASE_SERVICE_ROLE_KEY, AUTH_SECRET, and AUTH_URL as environment secrets
+ * instead of relying on .env.local.
  */
-const baseURL = process.env.TEST_BASE_URL ?? "http://localhost:3000";
 
 export default defineConfig({
   testDir: "./tests/e2e",
