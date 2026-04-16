@@ -13,15 +13,15 @@ A full-stack event planning application built with Next.js 16, Supabase, and Aut
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | Next.js 16 (App Router) |
-| Language | TypeScript |
-| Styling | Tailwind CSS v4 |
-| Database | Supabase (PostgreSQL) |
-| Auth | Auth.js v5 (NextAuth) |
-| Validation | Zod v4 |
-| Deployment | Vercel |
+| Layer      | Technology              |
+| ---------- | ----------------------- |
+| Framework  | Next.js 16 (App Router) |
+| Language   | TypeScript              |
+| Styling    | Tailwind CSS v4         |
+| Database   | Supabase (PostgreSQL)   |
+| Auth       | Auth.js v5 (NextAuth)   |
+| Validation | Zod v4                  |
+| Deployment | Vercel                  |
 
 ## Getting Started
 
@@ -58,7 +58,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Project Structure
 
-```
+```text
 app/
   page.tsx                  # Home — hero + upcoming events
   dashboard/page.tsx        # My Events + My RSVPs tabs
@@ -104,4 +104,3 @@ supabase/
 4. Deploy
 
 > Make sure `SUPABASE_SERVICE_ROLE_KEY` is added as a **server-only** environment variable (not prefixed with `NEXT_PUBLIC_`).
-
