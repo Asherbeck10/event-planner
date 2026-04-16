@@ -21,6 +21,7 @@ A full-stack event planning application built with Next.js 16, Supabase, and Aut
 | Database   | Supabase (PostgreSQL)   |
 | Auth       | Auth.js v5 (NextAuth)   |
 | Validation | Zod v4                  |
+| Testing    | Vitest + Playwright     |
 | Deployment | Vercel                  |
 
 ## Getting Started
@@ -92,7 +93,53 @@ lib/
 
 supabase/
   schema.sql                # Database schema
+
+tests/
+  setup.ts                  # Global Vitest setup (mocks for next/navigation etc.)
+  fixtures/index.ts         # Shared test data and Supabase mock helpers
+  unit/
+    lib/validations.test.ts # Zod schema unit tests
+    actions/
+      auth.test.ts          # registerUser / loginUser server action tests
+      events.test.ts        # Event CRUD server action tests
+      rsvps.test.ts         # RSVP server action tests
+    components/
+      EventCard.test.tsx
+      RSVPButton.test.tsx
+      SearchFilter.test.tsx
+  e2e/
+    global-setup.ts         # Seeds test users in Supabase before the run
+    global-teardown.ts      # Removes test data after the run
+    fixtures.ts             # Shared helpers + authenticatedPage fixture
+    auth.spec.ts            # Register, login, logout, route guards
+    events.spec.ts          # CRUD, search/filter, authorization, 404
+    rsvp.spec.ts            # RSVP, cancel, capacity, unauthenticated redirect
 ```
+
+## Testing
+
+### Unit tests (Vitest + React Testing Library)
+
+```bash
+pnpm test          # run once
+pnpm test:watch    # watch mode
+```
+
+83 tests across 7 files covering Zod schemas, all server actions (including auth checks and ownership guards), and all interactive components.
+
+### E2E tests (Playwright)
+
+E2E tests require a running app and a Supabase database. The global setup seeds two test users and cleans them up after the run.
+
+```bash
+# Run against the local dev server (starts automatically)
+pnpm test:e2e
+
+# Run against a deployed URL
+TEST_BASE_URL=https://your-app.vercel.app pnpm test:e2e
+```
+
+The same env vars from `.env.local` are used. For CI, set them as environment secrets.
 
 ## Deployment
 
