@@ -12,28 +12,26 @@ on:
   push:
     branches: [main]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   test:
     name: Lint & Unit Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v4
         with:
           version: 10
-
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: pnpm
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
       - name: Lint
         run: pnpm lint
-
       - name: Unit tests
         run: pnpm test
 
@@ -47,42 +45,25 @@ jobs:
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
       AUTH_URL: http://localhost:3000
-      TEST_BASE_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v4
         with:
           version: 10
-
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: pnpm
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Build
-        run: pnpm build
-
       - name: Install Playwright browsers
         run: pnpm exec playwright install chromium --with-deps
-
-      - name: Start app
-        run: pnpm start &
-
-      - name: Wait for app to be ready
-        run: npx wait-on http://localhost:3000 --timeout 30000
-
       - name: E2E tests
         run: pnpm test:e2e
-
       - name: Upload test artifacts
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-results
-          path: |
-            tests/e2e/.results/
+          path: tests/e2e/.results/
           retention-days: 7
